@@ -81,18 +81,25 @@ begin
 end;
 
 { Parse and Translate a Math Factor }
+procedure Expression; Forward;
+
 procedure Factor;
 begin
-    EmitLn('MOVE #' + GetNum + ', D0')
+    if Look = '(' then begin
+        Match('(');
+        Expression;
+        Match(')');
+        end
+    else
+        EmitLn('MOVE #' + GetNum + ', D0');
 end;
 
 { Recognize and Translate a Mult. }
 procedure Multiply;
 begin
-    Match('/');
+    Match('*');
     Factor;
-    EmitLn('MOVE (SP)+, D1');
-    EmitLn('DIVS D1, D0');
+    EmitLn('MULS (SP)+, D0');
 end;
 
 { Recognize and Translate a Div. }
