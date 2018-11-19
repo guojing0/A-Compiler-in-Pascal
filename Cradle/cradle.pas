@@ -51,6 +51,12 @@ begin
     IsDigit := c in ['0'..'9'];
 end;
 
+{ Recognize an Addop }
+function IsAddop(c: char): boolean;
+begin
+    IsAddop := c in ['+', '-'];
+end;
+
 { Get an Identifier }
 function GetName: char;
 begin
@@ -115,6 +121,7 @@ end;
 procedure Term;
 begin
     Factor;
+
     while Look in ['*', '/'] do begin
         EmitLn('MOVE D0, -(SP)');
 
@@ -146,9 +153,12 @@ end;
 { Parse and Translate an Expression }
 procedure Expression;
 begin
-    Term;
+    if IsAddop(Look) then
+        EmitLn('CLR D0')
+    else
+        Term;
 
-    while Look in ['+', '-'] do begin
+    while IsAddop(Look) do begin
         EmitLn('MOVE D0, -(SP)');
 
         case Look of
