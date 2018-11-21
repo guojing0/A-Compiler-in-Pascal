@@ -2,6 +2,7 @@ program Cradle;
 
 { Constant Declarations }
 const TAB = ^I;
+const CR = ^M;
 
 { Variable Declarations }
 var Look: char;
@@ -57,6 +58,11 @@ begin
     IsAddop := c in ['+', '-'];
 end;
 
+function IsAlNum(c: char): boolean;
+begin
+    IsAlNum := IsAlpha(c) or IsDigit(c);
+end;
+
 { Get an Identifier }
 function GetName: char;
 begin
@@ -86,6 +92,19 @@ begin
     WriteLn;
 end;
 
+procedure Ident;
+var Name: char;
+begin
+    Name := GetName;
+    if Look = '(' then begin
+        Match('(');
+        Match(')');
+        EmitLn('BSR ' + Name);
+        end
+    else
+        EmitLn('MOVE ' + Name + '(PC), D0')
+end;
+
 { Parse and Translate a Math Factor }
 procedure Expression; Forward;
 
@@ -96,6 +115,8 @@ begin
         Expression;
         Match(')');
         end
+    else if IsAlpha(Look) then
+        Ident
     else
         EmitLn('MOVE #' + GetNum + ', D0');
 end;
@@ -169,6 +190,16 @@ begin
     end;
 end;
 
+procedure Assignment;
+var Name: char;
+begin
+    Name := GetName;
+    Match('=');
+    Expression;
+    EmitLn('LEA ' + Name + '(PC), A0');
+    EmitLn('MOVE D0, (A0)');
+end;
+
 { Init. }
 procedure Init;
 begin
@@ -178,5 +209,6 @@ end;
 { Main Program }
 begin
     Init;
-    Expression;
+    Assignment;
+    if Look <> CR then Expected('Newline');
 end.
